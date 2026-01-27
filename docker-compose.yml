@@ -23,6 +23,8 @@ services:
       JWT_SECRET: dev
       ENCRYPTION_KEY: devkey
       STORAGE_DIR: /data
+      # Add your production frontend domains (comma separated). Keep localhost entries for dev.
+      CORS_ORIGINS: "https://heptabot.heptapusgroup.com,https://sponsorbot.heptapusgroup.com,http://localhost:5173,http://127.0.0.1:5173"
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/1
     depends_on:
@@ -74,17 +76,16 @@ services:
     build:
       context: ./frontend
     image: sponsorbot-frontend:latest
-    environment:
-      VITE_API_BASE: http://localhost:8000
+    environment: {}
     ports:
       - "127.0.0.1:5173:5173"
     depends_on:
       - backend
 
-  networks:
-    default:
-      external: true
-      name: heptapusgroup_default
+networks:
+  default:
+    external: true
+    name: heptapusgroup_default
 
 
 volumes:
