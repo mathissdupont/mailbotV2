@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap'); /* Atatürk köşesi için daha asil bir font */
+
+:root {
+  --tr-red: #E30A17;
+  --tr-bright-red: #ff1f2f; /* Daha parlak bir kırmızı */
+  --bg-dark: #050505;
+  --panel-bg: #111111;
+  --border-color: #333;
+  --text-main: #ffffff; /* Tam beyaz */
+  --text-muted: #b0b0b0; /* Daha açık gri */
+  --accent-glow: 0 0 25px rgba(227, 10, 23, 0.4);
+}
+
+* { box-sizing: border-box; font-family: 'Inter', sans-serif; outline: none; }
+
+body {
+  margin: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  /* Arka plana hafif kırmızı ışık hüzmeleri ekleyelim ki çok boğuk olmasın */
+  background-image: 
+    radial-gradient(circle at 20% 0%, rgba(227, 10, 23, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 100%, rgba(227, 10, 23, 0.1) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--tr-red); }
+
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+/* ================= LANDING PAGE ÖZEL ================= */
+
+/* Navbar Logo Alanı */
+.nav-logo-img {
+    height: 40px; /* Logonun yüksekliğini buradan ayarla */
+    width: auto;
+    display: block;
+}
+
+/* Hero Section - Animasyonlu Bayrak Alanı */
+.landing-hero {
+  min-height: 85vh; /* Biraz daha yüksek */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 2px solid var(--tr-red); /* Altına kırmızı çizgi */
+}
+
+/* Arka Plan Videosu */
+.video-background-container {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+.video-background {
+    min-width: 100%; 
+    min-height: 100%;
+    width: auto; height: auto;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.9;
+    filter:
+        brightness(1.4)
+        contrast(1.4)
+        saturate(1.5)
+        drop-shadow(0 0 30px rgba(227, 10, 23, 0.35));
+}
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(0,0,0,0.15) 0%,
+    rgba(5,5,5,0.55) 70%,
+    rgba(5,5,5,0.7) 100%
+  );
+  z-index: 1;
+}
+
+
+.landing-content-wrapper {
+    z-index: 10;
+    max-width: 900px;
+    padding: 20px;
+    /* Yazıların arkasına çok hafif bir gölge/blur atalım ki iyice netleşsin */
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+.landing-title {
+  font-size: 4.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 25px;
+}
+
+.landing-subtitle {
+  font-size: 1.3rem;
+  color: #ddd; /* Daha parlak gri */
+  max-width: 700px;
+  margin: 0 auto 45px auto;
+  line-height: 1.6;
+}
+
+/* Özellik Kutuları - Daha belirgin */
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 60px; z-index: 2; position: relative; }
+.feature-box { 
+    background: rgba(20, 20, 20, 0.8); /* Daha koyu ve net arka plan */
+    padding: 30px; 
+    border-radius: 12px; 
+    border: 1px solid #333; 
+    transition: 0.3s;
+    backdrop-filter: blur(10px); /* Buzlu cam efekti */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+.feature-box:hover { border-color: var(--tr-red); transform: translateY(-8px); box-shadow: var(--accent-glow); }
+.feature-box h3 { color: #fff; margin-bottom: 10px; font-size: 1.3rem; }
+.feature-box p { color: #ccc; }
+
+/* ATATÜRK KÖŞESİ - YENİ TASARIM */
+.ataturk-footer {
+    margin-top: 120px;
+    padding-top: 60px;
+    border-top: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    text-align: left;
+}
+
+.ataturk-portrait-container {
+    flex: 0 0 150px; /* Resim alanı genişliği */
+    height: 180px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #333;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    position: relative;
+}
+/* Resmin üzerine hafif bir kırmızı parlama efekti */
+.ataturk-portrait-container::after {
+    content: ''; position: absolute; inset:0;
+    background: linear-gradient(totop right, rgba(227,10,23,0.2), transparent);
+    pointer-events: none;
+}
+
+.ataturk-portrait {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1.2); /* Siyah beyaz ve kontrastlı */
+}
+
+.ataturk-quote-box {
+    max-width: 500px;
+}
+
+.ataturk-quote {
+    font-family: 'Cinzel', serif; /* Daha asil bir font */
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #fff;
+    line-height: 1.4;
+    margin-bottom: 20px;
+}
+
+.ataturk-signature {
+    height: 50px;
+    filter: none; /* show svg as-is */
+    opacity: 0.8;
+}
+
+/* ================= DİĞER KOMPONENTLER (Login vb. için) ================= */
+/* (Eski CSS'teki card, input, btn sınıfları buraya aynen gelecek, yukarıdaki tanımlar onları zaten güncelledi) */
+.card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.row { display: flex; gap: 20px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 300px; }
+h2, h3 { margin-top: 0; color: #fff; }
+h3 { font-weight: 600; font-size: 1.2rem; border-left: 3px solid var(--tr-red); padding-left: 10px; }
+.small { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 5px; display: block; }
+.input, select, textarea { width: 100%; padding: 12px; background: #050505; border: 1px solid #333; color: #fff; border-radius: 6px; transition: 0.2s; }
+.input:focus { border-color: var(--tr-red); box-shadow: var(--accent-glow); }
+.btn { padding: 14px 28px; background: var(--tr-red); color: #fff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+.btn:hover { background: var(--tr-bright-red); transform: translateY(-2px); box-shadow: 0 5px 25px rgba(227, 10, 23, 0.6); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.secondary { background: transparent; border: 1px solid #444; color: #ccc; box-shadow: none; }
+.btn.secondary:hover { border-color: #fff; color: #fff; }
+.btn.ghost { background: transparent; color: var(--text-muted); padding: 8px 16px; font-size: 0.9rem; }
+.btn.ghost:hover { color: #fff; }
+.hero-panel { display: flex; justifyContent: space-between; alignItems: center; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+.tabs { display: flex; gap: 5px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+.tab { padding: 10px 20px; background: transparent; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; font-weight: 500; white-space: nowrap; }
+.tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.tab.active { background: rgba(227, 10, 23, 0.1); border-color: var(--tr-red); color: var(--tr-red); }
+.notice { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; font-size: 0.9rem; border-left: 2px solid #555; }
+.badge { display: inline-block; padding: 4px 8px; border-radius: 4px; background: #333; color: #fff; font-size: 11px; margin-right: 4px; border: 1px solid #444; }

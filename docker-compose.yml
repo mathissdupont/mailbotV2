@@ -1,0 +1,85 @@
+name: sponsorbot
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sponsorbot
+      POSTGRES_USER: sponsorbot
+      POSTGRES_PASSWORD: sponsorbot
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sponsorbot -d sponsorbot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://sponsorbot:sponsorbot@db:5432/sponsorbot
+      JWT_SECRET: dev
+      ENCRYPTION_KEY: devkey
+      STORAGE_DIR: /data
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - sponsorbot_data:/data
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: ./backend
+    command: celery -A app.celery_app:celery_app worker -l info
+    environment:
+      DATABASE_URL: postgresql+psycopg://sponsorbot:sponsorbot@db:5432/sponsorbot
+      JWT_SECRET: dev
+      ENCRYPTION_KEY: devkey
+      STORAGE_DIR: /data
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_started
+    volumes:
+      - sponsorbot_data:/data
+
+  beat:
+    build: ./backend
+    command: celery -A app.celery_app:celery_app beat -l info
+    environment:
+      DATABASE_URL: postgresql+psycopg://sponsorbot:sponsorbot@db:5432/sponsorbot
+      JWT_SECRET: dev
+      ENCRYPTION_KEY: devkey
+      STORAGE_DIR: /data
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      redis:
+        condition: service_started
+    volumes:
+      - sponsorbot_data:/data
+
+  frontend:
+    build:
+      context: ./frontend
+    image: sponsorbot-frontend:latest
+    environment:
+      VITE_API_BASE: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+
+  sponsorbot_data:
