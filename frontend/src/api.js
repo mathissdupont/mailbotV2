@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const RAW_API_BASE = import.meta.env.VITE_API_BASE || "";
+// normalize: remove trailing slashes, keep empty string if not set
+const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/+$|\\s+$/g, "") : "";
 
 export function setToken(token) {
   localStorage.setItem("token", token);
@@ -15,7 +17,9 @@ async function request(path, options = {}) {
     ...(options.headers || {}),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${API_BASE}${path}`, {
+  const p = path.startsWith("/") ? path : `/${path}`;
+  const url = API_BASE ? `${API_BASE}${p}` : p;
+  const res = await fetch(url, {
     ...options,
     headers,
   });
