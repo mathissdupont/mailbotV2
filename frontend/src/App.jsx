@@ -18,14 +18,21 @@ const SMTP_PRESETS = {
   "Zoho Mail": { host: "smtp.zoho.com", port: 587 },
 };
 
-// --- Login Component (Sadeleştirilmiş) ---
+// Decode JWT payload (no signature verification — display only)
+function getRoleFromToken() {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    return JSON.parse(atob(token.split(".")[1])).role;
+  } catch {
+    return null;
+  }
+}
+
+// --- Login Component ---
 function Login({ onDone, onBack }) {
-  const [tab, setTab] = useState("local");
-  const [u, setU] = useState("admin");
-  const [p, setP] = useState("admin123!");
-  const [p2, setP2] = useState("");
-  const [e, setE] = useState("");
-  const [pw, setPw] = useState("");
+  const [u, setU] = useState("");
+  const [p, setP] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -38,30 +45,6 @@ function Login({ onDone, onBack }) {
     } catch (ex) { setErr(ex.message); } finally { setBusy(false); }
   }
 
-  async function doWp() {
-    setBusy(true); setErr("");
-    try {
-      const r = await api.worldpassLogin(e, pw);
-      setToken(r.token);
-      onDone();
-    } catch (ex) { setErr(ex.message); } finally { setBusy(false); }
-  }
-
-  async function doRegister() {
-    setBusy(true); setErr("");
-    try {
-      if (p !== p2) throw new Error("Şifreler uyuşmuyor");
-      const r = await api.register(u, p, p2);
-      // store token and optionally show verification token
-      setToken(r.token);
-      if (r.verify_token) {
-        // show a notice to user to verify their email
-        alert("Kayıt başarılı. Doğrulama token'ınız: " + r.verify_token + "\nLütfen 'WorldPass' veya doğrulama endpoint'ini kullanarak e-posta doğrulayın.");
-      }
-      onDone();
-    } catch (ex) { setErr(ex.message); } finally { setBusy(false); }
-  }
-
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <button className="btn ghost" onClick={onBack} style={{ position: 'absolute', top: 20, left: 20 }}>← Geri Dön</button>
@@ -69,61 +52,20 @@ function Login({ onDone, onBack }) {
       <div className="card" style={{ width: '100%', maxWidth: 450, position: 'relative', overflow: 'hidden' }}>
         <div style={{ height: 4, background: 'var(--tr-red)', position: 'absolute', top: 0, left: 0, right: 0 }}></div>
         
-        <h2 style={{ textAlign: 'center', marginBottom: 5 }}>Yönetici Girişi</h2>
+        <h2 style={{ textAlign: 'center', marginBottom: 5 }}>Giriş Yap</h2>
         <div style={{ textAlign: 'center', color: '#666', fontSize: '0.9rem', marginBottom: 30 }}>Heptapus Mailbot</div>
 
-        <div className="tabs" style={{ justifyContent: 'center' }}>
-          <button className={"tab " + (tab === "local" ? "active" : "")} onClick={() => setTab("local")}>Yerel Hesap</button>
-          <button className={"tab " + (tab === "register" ? "active" : "")} onClick={() => setTab("register")}>Kayıt Ol</button>
-          <button className={"tab " + (tab === "wp" ? "active" : "")} onClick={() => setTab("wp")}>WorldPass ID</button>
-        </div>
-
-        {tab === "local" && (
-          <>
-            <label className="small">Kullanıcı Adı</label>
-            <input className="input" value={u} onChange={(ev) => setU(ev.target.value)} />
-            <div style={{ height: 15 }} />
-            <label className="small">Şifre</label>
-            <input className="input" type="password" value={p} onChange={(ev) => setP(ev.target.value)} />
-            <div style={{ height: 25 }} />
-            <button className="btn" style={{ width: '100%' }} disabled={busy} onClick={doLocal}>
-              {busy ? "Giriş Yapılıyor..." : "Giriş Yap"}
-            </button>
-          </>
-        )}
-
-        {tab === "wp" && (
-          <>
-            <label className="small">WorldPass Email</label>
-            <input className="input" value={e} onChange={(ev) => setE(ev.target.value)} />
-            <div style={{ height: 15 }} />
-            <label className="small">Şifre</label>
-            <input className="input" type="password" value={pw} onChange={(ev) => setPw(ev.target.value)} />
-            <div style={{ height: 25 }} />
-            <button className="btn" style={{ width: '100%' }} disabled={busy} onClick={doWp}>
-              {busy ? "Bağlanılıyor..." : "Bağlan"}
-            </button>
-          </>
-        )}
-
-        {tab === "register" && (
-          <>
-            <label className="small">Kullanıcı Adı (e-posta önerilir)</label>
-            <input className="input" value={u} onChange={(ev) => setU(ev.target.value)} />
-            <div style={{ height: 15 }} />
-            <label className="small">Şifre (en az 8 karakter)</label>
-            <input className="input" type="password" value={p} onChange={(ev) => setP(ev.target.value)} />
-            <div style={{ height: 10 }} />
-            <label className="small">Şifre (tekrar)</label>
-            <input className="input" type="password" value={p2} onChange={(ev) => setP2(ev.target.value)} />
-            <div style={{ height: 25 }} />
-            <button className="btn" style={{ width: '100%' }} disabled={busy} onClick={doRegister}>
-              {busy ? "Kayıt Oluşturuluyor..." : "Kayıt Ol"}
-            </button>
-            {/** Show verification token if returned in response (dev) */}
-            {err && <div className="notice" style={{ marginTop: 12 }}>{err}</div>}
-          </>
-        )}
+        <label className="small">Kullanıcı Adı</label>
+        <input className="input" value={u} onChange={(ev) => setU(ev.target.value)}
+          onKeyDown={(ev) => ev.key === "Enter" && doLocal()} />
+        <div style={{ height: 15 }} />
+        <label className="small">Şifre</label>
+        <input className="input" type="password" value={p} onChange={(ev) => setP(ev.target.value)}
+          onKeyDown={(ev) => ev.key === "Enter" && doLocal()} />
+        <div style={{ height: 25 }} />
+        <button className="btn" style={{ width: '100%' }} disabled={busy} onClick={doLocal}>
+          {busy ? "Giriş Yapılıyor..." : "Giriş Yap"}
+        </button>
 
         {err && <div className="notice" style={{ marginTop: 20, borderColor: 'red', color: '#ff6b6b' }}>{err}</div>}
       </div>
@@ -224,9 +166,83 @@ function SMTPTab() {
   );
 }
 
+// --- Users Tab (admin only) ---
+function UsersTab() {
+  const [users, setUsers] = useState([]);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("sender");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  async function refresh() {
+    try { setUsers(await api.adminListUsers()); } catch (ex) { setNotice("❌ " + ex.message); }
+  }
+  useEffect(() => { refresh(); }, []);
+
+  async function addUser() {
+    setBusy(true); setNotice("");
+    try {
+      await api.adminCreateUser(username.trim(), password, role);
+      setNotice("✅ Kullanıcı oluşturuldu");
+      setUsername(""); setPassword(""); setRole("sender");
+      await refresh();
+    } catch (ex) { setNotice("❌ " + ex.message); } finally { setBusy(false); }
+  }
+
+  async function delUser(id) {
+    if (!confirm("Bu kullanıcı silinsin mi?")) return;
+    try { await api.adminDeleteUser(id); await refresh(); } catch (ex) { setNotice("❌ " + ex.message); }
+  }
+
+  return (
+    <div className="row">
+      <div className="col">
+        <div className="card">
+          <h3>Kullanıcı Ekle</h3>
+          <label className="small">Kullanıcı Adı</label>
+          <input className="input" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <div style={{ height: 10 }} />
+          <label className="small">Şifre (en az 8 karakter)</label>
+          <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <div style={{ height: 10 }} />
+          <label className="small">Rol</label>
+          <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="sender">Gönderici (sender)</option>
+            <option value="admin">Yönetici (admin)</option>
+          </select>
+          <div style={{ height: 15 }} />
+          <button className="btn" disabled={busy} onClick={addUser} style={{ width: "100%" }}>
+            {busy ? "Oluşturuluyor..." : "Kullanıcı Oluştur"}
+          </button>
+          {notice && <div className="notice" style={{ marginTop: 10 }}>{notice}</div>}
+        </div>
+      </div>
+      <div className="col">
+        <div className="card">
+          <h3>Mevcut Kullanıcılar</h3>
+          {users.length === 0 && <div className="notice">Kullanıcı yok.</div>}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {users.map((u) => (
+              <div key={u.id} style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{u.username}</div>
+                  <div className="small" style={{ opacity: 0.6 }}>{u.role}</div>
+                </div>
+                <button className="btn secondary" onClick={() => delUser(u.id)} style={{ padding: "6px 10px", fontSize: "0.8rem" }}>Sil</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- Shell (Ana Dashboard) ---
 function Shell({ onLogout }) {
   const [active, setActive] = useState("smtp");
+  const isAdmin = getRoleFromToken() === "admin";
 
   return (
     <div className="container">
@@ -242,7 +258,8 @@ function Shell({ onLogout }) {
         <button className={"tab " + (active === "audience" ? "active" : "")} onClick={() => setActive("audience")}>Hedef Kitle</button>
         <button className={"tab " + (active === "templates" ? "active" : "")} onClick={() => setActive("templates")}>Şablonlar</button>
         <button className={"tab " + (active === "attachments" ? "active" : "")} onClick={() => setActive("attachments")}>Dosyalar</button>
-        <button className={"tab " + (active === "send" ? "active" : "")} onClick={() => setActive("send")}>Gönderim & Rapor</button> 
+        <button className={"tab " + (active === "send" ? "active" : "")} onClick={() => setActive("send")}>Gönderim & Rapor</button>
+        {isAdmin && <button className={"tab " + (active === "users" ? "active" : "")} onClick={() => setActive("users")}>Kullanıcılar</button>}
       </div>
 
       {active === "smtp" && <SMTPTab />}
@@ -250,6 +267,7 @@ function Shell({ onLogout }) {
       {active === "templates" && <TemplatesTab />}
       {active === "attachments" && <AttachmentsTab />}
       {active === "send" && <SendTab />}
+      {active === "users" && isAdmin && <UsersTab />}
     </div>
   );
 }

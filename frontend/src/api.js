@@ -40,17 +40,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ username, password }),
     }),
-  register: (username, password, password_confirm) =>
-    request("/api/auth/register", { method: "POST", body: JSON.stringify({ username, password, password_confirm }) }),
-  verifyEmail: (token) => request(`/api/auth/verify?token=${encodeURIComponent(token)}`, { method: "GET" }),
-  worldpassLogin: (email, password) =>
-    request("/api/auth/worldpass-login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    }),
 
-  audienceList: () => request("/api/audience", { method: "GET" }),
-  jobLogs: (id) => request(`/api/jobs/${id}/logs`, { method: "GET" }),
+  adminListUsers: () => request("/api/auth/users", { method: "GET" }),
+  adminCreateUser: (username, password, role) =>
+    request("/api/auth/users", { method: "POST", body: JSON.stringify({ username, password, role }) }),
+  adminDeleteUser: (id) => request(`/api/auth/users/${id}`, { method: "DELETE" }),
+
   audienceList: () => request("/api/audience", { method: "GET" }),
 
 

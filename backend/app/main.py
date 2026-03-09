@@ -35,19 +35,21 @@ def startup():
     os.makedirs(settings.STORAGE_DIR, exist_ok=True)
     Base.metadata.create_all(bind=engine)
 
-    # local admin bootstrap
+    # seed built-in admin accounts if they don't exist yet
     db = SessionLocal()
     try:
-        exists = db.query(User).first()
-        if not exists:
-            u = User(
-                username=settings.LOCAL_ADMIN_USER,
-                password_hash=hash_password(settings.LOCAL_ADMIN_PASS),
-                role="admin",
-                auth_type="local"
-            )
-            db.add(u)
-            db.commit()
+        def _ensure_admin(username: str, password: str) -> None:
+            if not db.query(User).filter(User.username == username).first():
+                db.add(User(
+                    username=username,
+                    password_hash=hash_password(password),
+                    role="admin",
+                    auth_type="local",
+                ))
+
+        _ensure_admin(settings.LOCAL_ADMIN_USER, settings.LOCAL_ADMIN_PASS)
+        _ensure_admin(settings.SAMET_ADMIN_USER, settings.SAMET_ADMIN_PASS)
+        db.commit()
     finally:
         db.close()
 
