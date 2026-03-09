@@ -92,7 +92,8 @@ services:
       context: ./frontend
     image: sponsorbot-frontend:latest
     environment:
-      VITE_API_URL: https://sponsorbot.heptapusgroup.com
+      VITE_API_BASE: ""
+      BACKEND_URL: http://backend:8000
     ports:
       - "5173:5173"
     depends_on:
