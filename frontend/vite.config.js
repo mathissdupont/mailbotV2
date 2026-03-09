@@ -6,6 +6,7 @@ export default defineConfig({
   base: "/", // subpath varsa burayı değiştir
   server: {
     host: true,
-    port: 5173
+    port: 5173,
+    allowedHosts: ["heptabot.heptapusgroup.com", "sponsorbot.heptapusgroup.com"]
   }
 });
